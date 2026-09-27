@@ -3,12 +3,23 @@
   "name": "StudyGo Practice Helper",
   "version": "1.0.0",
   "description": "Automatically fills in StudyGo practice answers from your word list",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://*.studygo.com/*",
+    "https://studygo.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.studygo.com/*",
+        "https://studygo.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "action": {
     "default_title": "StudyGo Practice Helper",
     "default_popup": "popup.html"
-  },
-  "background": {
-    "service_worker": "background.js"
   }
 }

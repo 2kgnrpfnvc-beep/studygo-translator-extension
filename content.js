@@ -2,21 +2,22 @@
   const ID = 'studygo-practice-helper';
   document.getElementById(ID)?.remove();
 
-  const parseWordList = (text) => text.split(/\\r?\\n/).map(line => {
-    const match = line.match(/^\\s*(.*?)\\s*(?:=|\\t|→|->)\\s*(.*?)\\s*$/);
-    return match ? { word: match[1], translation: match[2] } : null;
-  }).filter(Boolean);
+  const parseWordList = (text) => {
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(line => line && line !== '0');
+    const pairs = [];
+    for (let i = 0; i + 1 < lines.length; i += 2) {
+      pairs.push({ word: lines[i], translation: lines[i + 1] });
+    }
+    return pairs;
+  };
 
   chrome.storage.local.get({ wordlist: '' }, ({ wordlist }) => {
     const pairs = parseWordList(wordlist);
     if (!pairs.length) return;
 
-    const normalize = value => value.toLocaleLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, ' ').trim();
+    const normalize = value => value.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
     const pageText = normalize(document.body.innerText);
-    const match = pairs.find(pair => {
-      const word = normalize(pair.word);
-      return word && (pageText.includes(` ${word} `) || pageText.startsWith(word) || pageText.endsWith(word));
-    });
+    const match = pairs.find(pair => pageText.includes(normalize(pair.word)));
 
     const panel = document.createElement('aside');
     panel.id = ID;

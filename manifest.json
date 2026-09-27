@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "StudyGo Practice Helper",
+  "version": "1.0.0",
+  "description": "Shows translations from a user-provided StudyGo word list while you practice. It does not fill test answers.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "action": {
+    "default_title": "StudyGo Practice Helper",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

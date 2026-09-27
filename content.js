@@ -13,21 +13,35 @@
   const autoFillAnswers = (pairs) => {
     const pageText = normalize(document.body.innerText);
     
-    // Find the text input/textarea for the answer
-    const inputs = document.querySelectorAll('input[type="text"], textarea');
-    
+    // Try to find the answer input - look for contenteditable divs, input fields, or textareas
+    const inputs = Array.from(document.querySelectorAll(
+      'input[type="text"], textarea, [contenteditable="true"], [contenteditable="plaintext-only"]'
+    )).filter(el => {
+      // Filter for visible elements
+      if (el.offsetParent === null) return false;
+      // Skip if already filled
+      const value = el.value || el.textContent || el.innerText || '';
+      return !value.trim();
+    });
+
     inputs.forEach(input => {
-      // Check if this input is visible and not already filled
-      if (input.offsetParent === null || input.value.trim()) return;
-      
       // Find matching word on the page
       const match = pairs.find(pair => pageText.includes(normalize(pair.word)));
       
       if (match) {
-        // Fill the input with the translation
-        input.value = match.translation;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
+        // Try filling different types of inputs
+        if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+          input.value = match.translation;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (input.contentEditable === 'true' || input.contentEditable === 'plaintext-only') {
+          // For contenteditable divs
+          input.textContent = match.translation;
+          input.innerText = match.translation;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+          input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+        }
       }
     });
   };
@@ -37,7 +51,7 @@
     if (!pairs.length) return;
     
     // Auto-fill on page load
-    autoFillAnswers(pairs);
+    setTimeout(() => autoFillAnswers(pairs), 500);
     
     // Also try filling when DOM changes (in case new questions load)
     const observer = new MutationObserver(() => autoFillAnswers(pairs));

@@ -13,37 +13,25 @@
   const autoFillAnswers = (pairs) => {
     const pageText = normalize(document.body.innerText);
     
-    // Try to find the answer input - look for contenteditable divs, input fields, or textareas
-    const inputs = Array.from(document.querySelectorAll(
-      'input[type="text"], textarea, [contenteditable="true"], [contenteditable="plaintext-only"]'
-    )).filter(el => {
-      // Filter for visible elements
-      if (el.offsetParent === null) return false;
-      // Skip if already filled
-      const value = el.value || el.textContent || el.innerText || '';
-      return !value.trim();
-    });
-
-    inputs.forEach(input => {
-      // Find matching word on the page
-      const match = pairs.find(pair => pageText.includes(normalize(pair.word)));
-      
-      if (match) {
-        // Try filling different types of inputs
-        if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
-          input.value = match.translation;
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-        } else if (input.contentEditable === 'true' || input.contentEditable === 'plaintext-only') {
-          // For contenteditable divs
-          input.textContent = match.translation;
-          input.innerText = match.translation;
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-          input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
-        }
-      }
-    });
+    // Find the StudyGo textarea input
+    const textarea = document.querySelector('textarea.wrts-simple-input');
+    
+    if (!textarea) return;
+    
+    // Skip if already filled
+    if (textarea.value.trim()) return;
+    
+    // Find matching word on the page
+    const match = pairs.find(pair => pageText.includes(normalize(pair.word)));
+    
+    if (match) {
+      // Fill the textarea
+      textarea.value = match.translation;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      textarea.dispatchEvent(new Event('change', { bubbles: true }));
+      textarea.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+      textarea.focus();
+    }
   };
 
   chrome.storage.local.get({ wordlist: '' }, ({ wordlist }) => {
